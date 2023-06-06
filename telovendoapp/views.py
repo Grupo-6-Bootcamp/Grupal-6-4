@@ -1,12 +1,14 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.views import View
 from django.views.generic import TemplateView
 from .form import FormularioProveedores
 from .models import Proveedores
 
+
 def index(request):
     return render(request, "index.html")
+
 
 def clients(request):
     clientes = [
@@ -53,19 +55,38 @@ def clients(request):
     ]
     return render(request, "clients.html", {"clientes": clientes})
 
-class FormView(TemplateView):
-    template_name = "formulario.html"
-    def get_context_data(self, **kwargs):
-        context = super(FormView, self).get_context_data(**kwargs)
-        context['form'] = FormularioProveedores()
-        return context
+# class FormView(TemplateView):
+#     template_name = "formulario.html"
+#     def get_context_data(self, **kwargs):
+#         context = super(FormView, self).get_context_data(**kwargs)
+#         context['form'] = FormularioProveedores()
+#         return context
 
-    def post(self, request, *args, **kwargs):
+#     def post(self, request, *args, **kwargs):
+#         form = FormularioProveedores(request.POST)
+#         if form.is_valid():
+#             return HttpResponse("Formulario valido")
+#         else:
+#             return render(request, "formulario.html", {"form": form})
+
+
+class CrearProveedorView(View):
+    template_name = "formulario.html"
+
+    def get(self, request):
+        form = FormularioProveedores()
+        context = {'form': form}
+        return render(request, 'formulario.html', context)
+
+    def post(self, request):
         form = FormularioProveedores(request.POST)
         if form.is_valid():
-            return HttpResponse("Formulario valido")
+            form.save()
+            return redirect('proveedores')
         else:
-            return render(request, "formulario.html", {"form": form})
+            context = {'form': form}
+            return render(request, 'formulario.html', context)
+
 
 class ProveedoresView(TemplateView):
     template_name = "proveedores.html"
@@ -74,6 +95,3 @@ class ProveedoresView(TemplateView):
         proveedores = Proveedores.objects.all()
         context = {"proveedores": proveedores}
         return render(request, "proveedores.html", context)
-
-    
-
